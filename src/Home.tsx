@@ -407,13 +407,13 @@ export default function Home({ darkMode }: { darkMode: boolean }) {
           darkMode ? "bg-gradient-to-r from-transparent via-[#b3ce18]/20 to-transparent" : "bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent"
         }`}></div>
         
-        <div className={`w-[52px] h-[52px] rounded-[18px] border flex items-center justify-center mb-5 ${
+        <div className={`w-[52px] h-[52px] rounded-[18px] border flex items-center justify-center mb-5 mx-auto ${
           darkMode ? "bg-[#b3ce18]/10 border-[#b3ce18]/20 text-[#b3ce18]" : "bg-emerald-50 border-emerald-200 text-emerald-600"
         }`}>
           <Mail size={24} strokeWidth={2} />
         </div>
-        <h2 className={`font-bold text-[22px] tracking-tight mb-2 ${darkMode ? "text-[#b3ce18]" : "text-emerald-600"}`}>Hubungi Saya</h2>
-        <div className="mb-6">
+        <h2 className={`font-bold text-[22px] tracking-tight mb-2 text-center ${darkMode ? "text-[#b3ce18]" : "text-emerald-600"}`}>Hubungi Saya</h2>
+        <div className="mb-6 text-center">
           <p className={`text-[15px] font-semibold mb-2 ${darkMode ? "text-neutral-200" : "text-neutral-800"}`}>
             Ada idea projek atau ingin berkolaborasi?
           </p>
@@ -421,7 +421,7 @@ export default function Home({ darkMode }: { darkMode: boolean }) {
             Saya sentiasa terbuka untuk berbincang tentang reka bentuk, pembangunan web, teknologi, tech stack dan pelbagai idea digital lain.
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <a 
             href="mailto:hi@fitrimahadzir.my"
             target="_blank"
