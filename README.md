@@ -1,6 +1,6 @@
 # Portfolio & Kedai Digital - Fitri Mahadzir
 
-link-in-bio-fitri-mahadzir-v2A modern, responsive personal portfolio and digital product shop built with React, Vite, Tailwind CSS, and Framer Motion. This project features dynamic product fetching from Supabase, a seamless user experience, and a beautifully crafted UI.
+A modern, responsive personal portfolio and digital product shop built with React, Vite, Tailwind CSS, and Framer Motion. This project features dynamic product fetching from Supabase, a seamless user experience, and a beautifully crafted UI.
 
 ## ✨ Features
 

@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Link } from "react-router-dom";
-import { supabase } from "./supabase";
+import { supabase, isSupabaseConfigured } from "./supabase";
+import { formatPrice, isFreeProduct } from "./utils";
+
 import {
   Heart,
   LayoutGrid,
@@ -22,33 +24,61 @@ import {
   Check,
   Briefcase,
   FileText,
+  X,
+  AlertCircle
 } from "lucide-react";
 
 export default function Home({ darkMode }: { darkMode: boolean }) {
-  const [products, setProducts] = useState<any[]>([
-    {
-      title: "Effect Haltone Template (PSD Format)",
-      price: "Free",
-      image: "https://images.unsplash.com/photo-1511407397940-d57f68e81203?q=80&w=400&auto=format&fit=crop",
-      is_free: true
-    },
-    {
-      title: "Graphic Bundle (Template Desain & Brush Premium)",
-      price: "RM 15.00",
-      image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?q=80&w=400&auto=format&fit=crop",
-      is_free: false
-    }
-  ]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showMaintenancePopup, setShowMaintenancePopup] = useState(false);
+  const isShopPageEnabled = import.meta.env.VITE_ENABLE_SHOP_PAGE === "true";
+  const isProductLinksEnabled = import.meta.env.VITE_ENABLE_PRODUCT_LINKS === "true";
 
   useEffect(() => {
     async function loadProducts() {
       try {
+        if (!isSupabaseConfigured) throw new Error("Supabase is not configured");
         const { data, error } = await supabase.from('products').select('*').limit(2);
+        if (error) throw error;
         if (data && data.length > 0) {
           setProducts(data);
+        } else {
+          // Fallback dummy data jika table kosong
+          setProducts([
+            {
+              title: "Effect Haltone Template (PSD Format)",
+              price: "Free",
+              image: "https://images.unsplash.com/photo-1511407397940-d57f68e81203?q=80&w=400&auto=format&fit=crop",
+              is_free: true
+            },
+            {
+              title: "Graphic Bundle (Template Desain & Brush Premium)",
+              price: "RM 15.00",
+              image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?q=80&w=400&auto=format&fit=crop",
+              is_free: false
+            }
+          ]);
         }
       } catch (e) {
         console.error(e);
+        // Fallback jika API key tiada atau berlaku ralat
+        setProducts([
+          {
+            title: "Effect Haltone Template (PSD Format)",
+            price: "Free",
+            image: "https://images.unsplash.com/photo-1511407397940-d57f68e81203?q=80&w=400&auto=format&fit=crop",
+            is_free: true
+          },
+          {
+            title: "Graphic Bundle (Template Desain & Brush Premium)",
+            price: "RM 15.00",
+            image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?q=80&w=400&auto=format&fit=crop",
+            is_free: false
+          }
+        ]);
+      } finally {
+        setIsLoading(false);
       }
     }
     loadProducts();
@@ -158,8 +188,8 @@ export default function Home({ darkMode }: { darkMode: boolean }) {
           }`}></div>
         </div>
         
-        <h1 className={`text-[26px] font-bold mt-4 tracking-tight ${darkMode ? "text-[#b3ce18]" : "text-[#b3ce18]"}`}>Fitri Mahadzir</h1>
-        <p className={`font-jakarta font-semibold text-[15px] mt-1 tracking-wide ${darkMode ? "text-[#b3ce18]/70" : "text-emerald-600"}`}>Pereka Grafik & Pembangun Web</p>
+        <h1 className={`text-[26px] font-bold mt-4 tracking-tight ${darkMode ? "text-[#b3ce18]" : "text-emerald-700"}`}>Fitri Mahadzir</h1>
+        <p className={`font-jakarta font-semibold text-[15px] mt-1 tracking-wide ${darkMode ? "text-white/70" : "text-black/70"}`}>Pereka Grafik & Pembangun Web</p>
 
         <div className={`flex items-center gap-1.5 mt-2.5 px-3 py-1 rounded-full border transition-colors ${
           darkMode ? "text-neutral-400 bg-white/5 border-white/10" : "text-neutral-500 bg-white border-neutral-200"
@@ -226,7 +256,7 @@ export default function Home({ darkMode }: { darkMode: boolean }) {
             <span className={`font-bold text-[17px] font-jakarta tracking-tight ${darkMode ? "text-white" : "text-neutral-900"}`}>Lihat Portfolio Saya</span>
           </div>
           <div className="mr-2">
-            <ArrowUpRight strokeWidth={2.5} size={20} className={darkMode ? "text-neutral-600 group-hover:text-[#b3ce18]" : "text-neutral-400 group-hover:text-emerald-600"} />
+            <ArrowUpRight strokeWidth={2.5} size={20} className={darkMode ? "text-neutral-400 group-hover:text-[#b3ce18]" : "text-neutral-500 group-hover:text-emerald-600"} />
           </div>
         </div>
       </motion.a>
@@ -251,7 +281,7 @@ export default function Home({ darkMode }: { darkMode: boolean }) {
               darkMode ? "group-hover:bg-white/5" : "group-hover:bg-emerald-100"
             }`}>
               <ArrowUpRight strokeWidth={2} size={18} className={`transition-colors ${
-                darkMode ? "text-neutral-600 group-hover:text-[#b3ce18]" : "text-neutral-400 group-hover:text-emerald-600"
+                darkMode ? "text-neutral-400 group-hover:text-[#b3ce18]" : "text-neutral-500 group-hover:text-emerald-600"
               }`} />
             </div>
           </>,
@@ -276,52 +306,91 @@ export default function Home({ darkMode }: { darkMode: boolean }) {
       >
         <div className="flex justify-between items-center mb-4">
           <h2 className={`font-bold text-[18px] tracking-tight ${darkMode ? "text-white" : "text-neutral-900"}`}>Produk Pilihan</h2>
-          <Link
-            to="/shop"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all ${
-              darkMode ? "bg-white/10 hover:bg-white/20 text-white" : "bg-neutral-100 hover:bg-neutral-200 text-neutral-900"
-            }`}
-          >
-            Kedai Digital <ArrowUpRight size={14} />
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          {products.map((product, i) => (
-            <a
-              key={i}
-              href="#"
-              className={`group flex flex-col rounded-[16px] overflow-hidden border transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] ${
-                darkMode ? "bg-white/5 border-white/10 hover:border-[#b3ce18]/30" : "bg-white border-neutral-200 hover:border-emerald-200"
+          {isShopPageEnabled ? (
+            <Link
+              to="/shop"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all ${
+                darkMode ? "bg-white/10 hover:bg-white/20 text-white" : "bg-neutral-100 hover:bg-neutral-200 text-neutral-900"
               }`}
             >
-              <div className="aspect-[4/3] w-full overflow-hidden bg-neutral-800">
-                <img 
-                  src={product.image} 
-                  alt={product.title} 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-              </div>
-              <div className="p-3.5 flex flex-col flex-1 justify-between">
-                <h3 className={`font-bold text-[13px] leading-snug mb-4 line-clamp-2 ${darkMode ? "text-white" : "text-neutral-900"}`}>
-                  {product.title}
-                </h3>
-                <div className="flex items-center justify-between mt-auto">
-                  <span className={`px-2.5 py-1 rounded-full text-[12px] font-bold ${
-                    product.is_free
-                      ? (darkMode ? "bg-[#b3ce18]/20 text-[#b3ce18]" : "bg-[#b3ce18]/20 text-[#7a8c10]")
-                      : (darkMode ? "bg-white/10 text-neutral-300" : "bg-neutral-100 text-neutral-700")
-                  }`}>
-                    {product.price}
-                  </span>
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
-                    darkMode ? "bg-white/10 group-hover:bg-[#b3ce18]/20" : "bg-neutral-100 group-hover:bg-emerald-100"
-                  }`}>
-                    <ArrowUpRight size={14} className={darkMode ? "text-neutral-400 group-hover:text-[#b3ce18]" : "text-neutral-500 group-hover:text-emerald-700"} />
+              Produk Lain <ArrowUpRight size={14} />
+            </Link>
+          ) : (
+            <button
+              onClick={() => setShowMaintenancePopup(true)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all cursor-pointer ${
+                darkMode ? "bg-white/10 hover:bg-white/20 text-white" : "bg-neutral-100 hover:bg-neutral-200 text-neutral-900"
+              }`}
+            >
+              Produk Lain <ArrowUpRight size={14} />
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {isLoading ? (
+            [...Array(2)].map((_, i) => (
+              <div key={i} className={`group flex flex-col rounded-[16px] overflow-hidden border shadow-sm ${
+                darkMode ? "bg-white/5 border-white/10" : "bg-white border-neutral-200"
+              }`}>
+                <div className={`aspect-[4/3] w-full animate-pulse ${darkMode ? "bg-white/10" : "bg-neutral-200"}`}></div>
+                <div className="p-3.5 flex flex-col flex-1 justify-between">
+                  <div className="flex flex-col gap-2 mb-4">
+                    <div className={`h-3 w-full rounded animate-pulse ${darkMode ? "bg-white/10" : "bg-neutral-200"}`}></div>
+                    <div className={`h-3 w-2/3 rounded animate-pulse ${darkMode ? "bg-white/10" : "bg-neutral-200"}`}></div>
+                  </div>
+                  <div className="flex items-center justify-between mt-auto">
+                    <div className={`h-6 w-14 rounded-full animate-pulse ${darkMode ? "bg-white/10" : "bg-neutral-200"}`}></div>
+                    <div className={`w-7 h-7 rounded-full animate-pulse ${darkMode ? "bg-white/10" : "bg-neutral-200"}`}></div>
                   </div>
                 </div>
               </div>
-            </a>
-          ))}
+            ))
+          ) : (
+            products.map((product, i) => {
+              const Tag: any = isProductLinksEnabled ? "a" : "button";
+              return (
+              <Tag
+                key={i}
+                href={isProductLinksEnabled ? "#" : undefined}
+                onClick={(e: any) => {
+                  if (!isProductLinksEnabled) {
+                    e.preventDefault();
+                    setShowMaintenancePopup(true);
+                  }
+                }}
+                className={`text-left group flex flex-col rounded-[16px] overflow-hidden border transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] ${
+                  darkMode ? "bg-white/5 border-white/10 hover:border-[#b3ce18]/30" : "bg-white border-neutral-200 hover:border-emerald-200"
+                }`}
+              >
+                <div className="aspect-[4/3] w-full overflow-hidden bg-neutral-800">
+                  <img 
+                    src={product.image} 
+                    alt={product.title} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                </div>
+                <div className="p-3.5 flex flex-col flex-1 justify-between">
+                  <h3 className={`font-bold text-[13px] leading-snug mb-4 line-clamp-2 ${darkMode ? "text-white" : "text-neutral-900"}`}>
+                    {product.title}
+                  </h3>
+                  <div className="flex items-center justify-between mt-auto">
+                    <span className={`px-2.5 py-1 rounded-full text-[12px] font-bold ${
+                      isFreeProduct(product)
+                        ? (darkMode ? "bg-[#b3ce18]/20 text-[#b3ce18]" : "bg-emerald-50 text-emerald-700")
+                        : (darkMode ? "bg-white/10 text-neutral-300" : "bg-neutral-100 text-neutral-700")
+                    }`}>
+                      {formatPrice(product.price)}
+                    </span>
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                      darkMode ? "bg-white/10 group-hover:bg-[#b3ce18]/20" : "bg-neutral-100 group-hover:bg-emerald-100"
+                    }`}>
+                      <ArrowUpRight size={14} className={darkMode ? "text-neutral-400 group-hover:text-[#b3ce18]" : "text-neutral-500 group-hover:text-emerald-700"} />
+                    </div>
+                  </div>
+                </div>
+              </Tag>
+            );})
+          )}
         </div>
       </motion.div>
 
@@ -357,7 +426,7 @@ export default function Home({ darkMode }: { darkMode: boolean }) {
             href="mailto:hi@fitrimahadzir.my"
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex-1 flex items-center justify-center py-3.5 font-bold rounded-[16px] transition-all text-[15px] hover:scale-[1.01] active:scale-[0.98] ${
+            className={`flex-1 flex items-center justify-center py-3.5 font-medium tracking-wide rounded-[16px] transition-all text-[15px] hover:scale-[1.01] active:scale-[0.98] ${
               darkMode ? "bg-white/10 border border-white/10 hover:bg-white/20 text-white" : "bg-neutral-100 border border-neutral-200 hover:bg-neutral-200 text-neutral-900"
             }`}
           >
@@ -378,6 +447,59 @@ export default function Home({ darkMode }: { darkMode: boolean }) {
           </a>
         </div>
       </motion.div>
+
+      <AnimatePresence>
+        {showMaintenancePopup && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMaintenancePopup(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className={`relative w-full max-w-[340px] rounded-2xl p-6 text-center overflow-hidden shadow-2xl ${
+                  darkMode ? "bg-neutral-900 border border-white/10 text-white" : "bg-white border border-neutral-200 text-neutral-900"
+                }`}
+              >
+                <div className={`w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center ${
+                  darkMode ? "bg-white/5 text-[#b3ce18]" : "bg-emerald-50 text-emerald-600"
+                }`}>
+                  <AlertCircle size={32} strokeWidth={1.5} />
+                </div>
+                
+                <h3 className="text-xl font-bold mb-2 tracking-tight">Kedai Sedang Diselenggara</h3>
+                <p className={`text-[14px] leading-relaxed mb-6 ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>
+                  Kedai digital ini belum tersedia sepenuhnya dan sedang dalam proses setup. Sila kembali semula nanti!
+                </p>
+
+                <button
+                  onClick={() => setShowMaintenancePopup(false)}
+                  className={`w-full py-3.5 rounded-xl font-bold transition-all active:scale-[0.98] ${
+                    darkMode ? "bg-[#b3ce18] text-[#1e3438] hover:opacity-90" : "bg-emerald-600 text-white hover:bg-emerald-700"
+                  }`}
+                >
+                  Tutup Tetingkap
+                </button>
+
+                <button 
+                  onClick={() => setShowMaintenancePopup(false)}
+                  className={`absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                    darkMode ? "bg-white/10 text-neutral-400 hover:text-white" : "bg-neutral-100 text-neutral-500 hover:text-neutral-900"
+                  }`}
+                >
+                  <X size={16} />
+                </button>
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

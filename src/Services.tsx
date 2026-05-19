@@ -7,7 +7,7 @@ export default function Services({ darkMode }: { darkMode: boolean }) {
   const services = [
     {
       title: "Pembangunan Web",
-      description: "Laman web dan aplikasi web kustom yang dibina menggunakan teknologi moden seperti React, Tailwind, dan Node.js.",
+      description: "Laman web dan aplikasi web kustom yang dibina menggunakan teknologi moden seperti Wordpress, React, Next.js, dan Node.js.",
       price: "Dari RM 150",
     },
     {
